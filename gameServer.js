@@ -1,17 +1,12 @@
 
 let settings = require("./static/js/settings.json")
 let WebSocket = require('ws')
+let Worker = require("tiny-worker");
 
 
 
 
-// const wss = new WebSocket.Server({ port: 80 })
-// wss.on('connection', ws => {
-//   ws.on('message', message => {
-//     console.log(`Received message => ${message}`)
-//   })
-//   ws.send('ho!')
-// })
+
 function guidGenerator() {
     var S4 = function() {
        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
@@ -29,39 +24,84 @@ class GameServer{
 
     start(){
         let context = this;
-        this.server.on('connection', webSocket => {
-            let playerId = guidGenerator();
-            context.state[playerId] = {
-                "x" : 100,
-                "y" : 100
-            }
-            // console.log('new connection')
-            console.log(context.state)
-            context.sockets.push(webSocket);
-            webSocket.send(JSON.stringify({
-                "init" : playerId,
-            }));
-            context.broadCast();
-            webSocket.on('message', message => {
-                context.handleMessage(message);
-            })
-        })
+        this.server.on('connection', function(webSocket){
+            // console.log(context)
+            // var x = 2
+            // var worker = new Worker(function(){
+            //     console.log(this);
+            //     console.log('created worker thread')
+            //     // console.log(webSocket)
+            //     while(true){
 
+            //     }
+            //     // console.log(x)
+            //     // console.log(context);
+            //     // co
+            //     // context.handlePlayer(webSocket);
+            // });
+
+            context.handlePlayer(webSocket);
+            // let playerId = guidGenerator();
+            // context.state[playerId] = {
+            //     "x" : 100,
+            //     "y" : 100
+            // }
+            // context.sockets.push(webSocket);
+            // webSocket.send(JSON.stringify({
+            //     "init" : playerId,
+            //     "state" : context.state
+            // }));
+            // context.broadCast(JSON.stringify(context.state));
+            // webSocket.on('message', message => {
+            //     context.handleMessage(message);
+            // })
+
+            // webSocket.on("close", event => {
+
+            // })
+        })
     }
 
-    broadCast(){
+    broadCast(message){
         for (let i in this.sockets){
-            console.log('sent message thru socket')
             let socket = this.sockets[i];
-            this.sendState(socket);
+            socket.send(message);
         }
     }
     
     handleMessage(message){
-        // console.log('parse message');
+        let jsonMessage = JSON.parse(message);
+        if ("closing" in jsonMessage){
+            let playerId = jsonMessage["closing"];
+            delete this.state[playerId];
+            this.broadCast(JSON.stringify(this.state));
+        }
+        else{
+            this.broadCast(message)
+        }
+
     }
-    sendState(webSocket){
-        webSocket.send(JSON.stringify(this.state));
+
+    handlePlayer(webSocket){
+        let playerId = guidGenerator();
+        let context = this;
+        this.state[playerId] = {
+            "x" : 100,
+            "y" : 100
+        }
+        this.sockets.push(webSocket);
+        webSocket.send(JSON.stringify({
+            "init" : playerId,
+            "state" : context.state
+        }));
+        this.broadCast(JSON.stringify(this.state));
+        webSocket.on('message', message => {
+            context.handleMessage(message);
+        })
+
+        webSocket.on("close", event => {
+
+        })
     }
 }
 
