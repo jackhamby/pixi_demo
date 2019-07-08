@@ -18,7 +18,7 @@ function guidGenerator() {
 class GameServer{
     constructor(){
         this.state = {};
-        this.server = new WebSocket.Server({ port: 80 });
+        this.server = new WebSocket.Server({ port: 8001 });
         this.sockets = []
     }
 
