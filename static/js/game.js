@@ -106,8 +106,8 @@ class Game extends PIXI.Application {
         document.body.append(this.view)
 
         // Create socket connection
-        // this.webSocket = new WebSocket("ws://128.199.51.196:8001");
-        this.webSocket = new WebSocket("ws://127.0.0.1:8001");
+        this.webSocket = new WebSocket("ws://128.199.51.196:8001");
+        // this.webSocket = new WebSocket("ws://127.0.0.1:8001");
 
 
         // On open connection
