@@ -1,5 +1,5 @@
 {
     "SERVER_PORT" : "8002",
-    "SERVER_ADDRESS" : "127.0.0.1",
+    "SERVER_ADDRESS" : "128.199.51.196",
     "SOCKET_PORT" : "8001"
 }
