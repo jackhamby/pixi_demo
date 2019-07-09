@@ -1,3 +1,6 @@
+let framesToPing = 260;
+
+
 // Class for client-side game object
 class Game extends PIXI.Application {
     constructor() {
@@ -10,7 +13,7 @@ class Game extends PIXI.Application {
         this.knights = {};
         this.playerKnight = null;
         this.playerId = null;
-
+        this.frameCount = 0;
     }
 
     init() {
@@ -22,6 +25,7 @@ class Game extends PIXI.Application {
 
 
     gameLoop(delta) {
+
         for (let id in this.knights) {
             let knight = this.knights[id];
             knight.x += knight.vx;
@@ -35,8 +39,19 @@ class Game extends PIXI.Application {
             if (knight.vy <= 0) {
                 knight.vy += 3;
             }
-		}
-		this.webSocket.send(this.getState());
+        }
+
+        if (this.frameCount % framesToPing == 0){
+            this.webSocket.send(this.getState());
+            this.frameCount = 0;
+
+        }
+        else{
+            ++this.frameCount;
+        }
+
+        // console.log('sending this state ')
+        // console.log(this.getState());
 		// console.log(this.getState())
         this.renderer.render(this.stage);
     }
@@ -91,7 +106,9 @@ class Game extends PIXI.Application {
         document.body.append(this.view)
 
         // Create socket connection
-        this.webSocket = new WebSocket("ws://128.199.51.196:8001");
+        // this.webSocket = new WebSocket("ws://128.199.51.196:8001");
+        this.webSocket = new WebSocket("ws://127.0.0.1:8001");
+
 
         // On open connection
         this.webSocket.onopen = function () {
@@ -157,7 +174,7 @@ class Game extends PIXI.Application {
 		
 		for (let id in this.knights){
 			if (!(id in this.state)){
-				console.log('deleting knights')
+				// console.log('deleting knights')
 				let knight = this.knights[id];
 				this.stage.removeChild(knight);
 				delete this.knights[id];
